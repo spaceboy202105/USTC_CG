@@ -4,8 +4,7 @@
 #include <QPainter>
 #include "ImageWidget.h"
 
-
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(QWidget* parent)
 	: QMainWindow(parent)
 {
 	//ui.setupUi(this);
@@ -23,17 +22,14 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-
 }
 
-void MainWindow::closeEvent(QCloseEvent *e)
+void MainWindow::closeEvent(QCloseEvent* e)
 {
-
 }
 
 void MainWindow::paintEvent(QPaintEvent* paintevent)
 {
-	
 }
 
 void MainWindow::CreateActions()
@@ -77,6 +73,24 @@ void MainWindow::CreateActions()
 	action_restore_ = new QAction(tr("Restore"), this);
 	action_restore_->setStatusTip(tr("Show origin image"));
 	connect(action_restore_, &QAction::triggered, imagewidget_, &ImageWidget::Restore);
+	action_undo_ = new QAction(tr("Undo"), this);
+	action_undo_->setStatusTip(tr("Undo your performance"));
+	connect(action_undo_, &QAction::triggered, imagewidget_, &ImageWidget::Undo);
+
+	action_wrapping_IDW_ = new QAction(tr("IDW"), this);
+	action_wrapping_IDW_->setStatusTip(tr("Wrapping image by using IDW methods"));
+	connect(action_wrapping_IDW_, &QAction::triggered, imagewidget_, &ImageWidget::WrappingIDW_slot);
+	action_wrapping_RBF_ = new QAction(tr("RBF"), this);
+	action_wrapping_RBF_->setStatusTip(tr("Wrapping image by using RBF methods"));
+	connect(action_wrapping_RBF_, &QAction::triggered, imagewidget_, &ImageWidget::WrappingRBF_slot);
+
+	action_fixhole_ = new QAction(tr("Fix"), this);
+	action_fixhole_->setStatusTip(tr("Fixing hole in image"));
+	connect(action_fixhole_, &QAction::triggered, imagewidget_, &ImageWidget::FixHole);
+
+	action_choose_ = new QAction(tr("Wrapping Choose"), this);
+	action_choose_->setStatusTip(tr("Choose wrapping points` pair"));
+	connect(action_choose_, &QAction::triggered, imagewidget_, &ImageWidget::Choose_Control);
 }
 
 void MainWindow::CreateMenus()
@@ -87,12 +101,17 @@ void MainWindow::CreateMenus()
 	menu_file_->addAction(action_open_);
 	menu_file_->addAction(action_save_);
 	menu_file_->addAction(action_saveas_);
+	menu_file_->addAction(action_undo_);
 
 	menu_edit_ = menuBar()->addMenu(tr("&Edit"));
 	menu_edit_->setStatusTip(tr("Edit menu"));
 	menu_edit_->addAction(action_invert_);
 	menu_edit_->addAction(action_mirror_);
 	menu_edit_->addAction(action_gray_);
+	menu_edit_->addAction(action_choose_);
+	menu_edit_->addAction(action_wrapping_IDW_);
+	menu_edit_->addAction(action_wrapping_RBF_);
+	menu_edit_->addAction(action_fixhole_);
 	menu_edit_->addAction(action_restore_);
 }
 
@@ -102,12 +121,17 @@ void MainWindow::CreateToolBars()
 	toolbar_file_->addAction(action_new_);
 	toolbar_file_->addAction(action_open_);
 	toolbar_file_->addAction(action_save_);
+	toolbar_file_->addAction(action_undo_);
 
-	// Add separator in toolbar 
+	// Add separator in toolbar
 	toolbar_file_->addSeparator();
 	toolbar_file_->addAction(action_invert_);
 	toolbar_file_->addAction(action_mirror_);
 	toolbar_file_->addAction(action_gray_);
+	toolbar_file_->addAction(action_choose_);
+	toolbar_file_->addAction(action_wrapping_IDW_);
+	toolbar_file_->addAction(action_wrapping_RBF_);
+	toolbar_file_->addAction(action_fixhole_);
 	toolbar_file_->addAction(action_restore_);
 }
 

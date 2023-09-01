@@ -206,7 +206,7 @@ $L _ {\text{dir}}$ 在各光源区域采样
 
 ### 2.2 环境光贴图重要性采样
 
-![is _ em.jpg](https://cdn.jsdelivr.net/gh/Ubpa/USTC_CG_Data@master/Homeworks/09_PathTracing/is_em.jpg)
+![is _ em.jpg](../../../report/lab9/figures/is_em.jpg)
 
 参考：[wiki | Alias _ method](https://en.wikipedia.org/wiki/Alias_method) 
 
@@ -226,7 +226,7 @@ $$
 
 其中
 
-![dwi _ dA.jpg](https://cdn.jsdelivr.net/gh/Ubpa/USTC_CG_Data@master/Homeworks/09_PathTracing/dwi_dA.jpg)
+![dwi _ dA.jpg](../../../report/lab9/figures/dwi_dA.jpg)
 
 $$
 \begin{align}

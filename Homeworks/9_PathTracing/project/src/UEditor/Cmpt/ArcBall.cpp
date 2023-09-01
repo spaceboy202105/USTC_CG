@@ -35,7 +35,7 @@ void Cmpt::ArcBall::OnUpdate(const Hierarchy* hierarchy) {
 			rot = quatf::identity();
 			sphere_p0 = get_sphere_p();
 		}
-		
+
 		if (io.MouseDownDuration[0] > 0) {
 			vecf3 sphere_p1 = get_sphere_p();
 			if (sphere_p1 == sphere_p0)

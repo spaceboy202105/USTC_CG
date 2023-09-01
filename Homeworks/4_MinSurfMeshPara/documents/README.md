@@ -35,7 +35,7 @@
 
 ### 存储数据结构：半边结构
 
-![image-20200308060027277](https://cdn.jsdelivr.net/gh/Ubpa/USTC_CG_Data@master/Homeworks/04_MinSurfMeshPara/image-20200308060027277.jpg)
+![image-20200308060027277](../../../report/lab4/figures/halfedge.jpg)
 
 相关资料：[half-edge](https://kaba.hilvi.org/homepage/blog/halfedge/halfedge.htm) 
 
@@ -47,7 +47,7 @@ $$
 \delta_i=v_i-\sum_{j\in N(i)}w_jv_j
 $$
 
-![image-20200308052934359](https://cdn.jsdelivr.net/gh/Ubpa/USTC_CG_Data@master/Homeworks/04_MinSurfMeshPara/image-20200308052934359.jpg)
+![image-20200308052934359](../../../report/lab4/figures/differentCoordinate.jpg)
 
 所有顶点联立，得到整个网格的 Laplacian 方程 $AV=b$ 
 
@@ -115,7 +115,7 @@ $$
 
 ### 曲面展开：将 3D 网格曲面（非封闭、带边界的）展开到平面
 
-![image-20200308061556138](https://cdn.jsdelivr.net/gh/Ubpa/USTC_CG_Data@master/Homeworks/04_MinSurfMeshPara/image-20200308061556138.jpg)
+![image-20200308061556138](../../../report/lab4/figures/parma1)
 
 ### 纹理映射
 
@@ -125,7 +125,7 @@ $$
 
 将边界固定到平面凸多边形（比如单位圆或单位正方形）上
 
-![image-20200308054033382](https://cdn.jsdelivr.net/gh/Ubpa/USTC_CG_Data@master/Homeworks/04_MinSurfMeshPara/image-20200308054033382.jpg)
+![image-20200308054033382](../../../report/lab4/figures/lineparma.jpg)
 
 ### 2D Barycentric Embeddings
 

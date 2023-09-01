@@ -10,14 +10,14 @@
 
 - 网格可以是二维网格 (Triangular meshes)，用于模拟布料、纸张等物体 (sheet objects)，如下图；也可以是三维体网格 (Tetrahedral meshes)，用于模拟体物体 (solid objects)，如后面段落介绍。
 
-![cloth.PNG](https://cdn.jsdelivr.net/gh/Ubpa/USTC_CG_Data@master/Homeworks/06_MassSpring/cloth.PNG)
+![cloth.PNG](../../../report/lab6/figures/cloth.PNG)
 
 
 ### 3D 四面体网格
 
 - 对实体物体 (solid objects) 的模拟通常将实体剖分为四面体单元（当然也可以是其他形式单元的剖分，比如六面体单元），其实质就是 3D 空间的 graph：
 
-![tet1.PNG](https://cdn.jsdelivr.net/gh/Ubpa/USTC_CG_Data@master/Homeworks/06_MassSpring/tet1.PNG)
+![tet1.PNG](../../../report/lab6/figures/tet1.PNG)
 
 ### 3D 网格剖分生成
 
@@ -81,6 +81,7 @@ $$
 $$
 
 
+
 $$
 \frac{\partial  \boldsymbol f_1}{\partial \boldsymbol x_2}=-\frac{\partial  \boldsymbol f_1}{\partial \boldsymbol x_1},
 \frac{\partial  \boldsymbol f_2}{\partial \boldsymbol x_1}=-\frac{\partial  \boldsymbol f_1}{\partial \boldsymbol x_1},
@@ -130,7 +131,7 @@ $$
 
 ## 3.边界条件和约束
 
-通常模拟过程中物体会有各种约束或额外条件，例如物体被固定了几个点，对某些点施加外力（如重力、浮力、风力等）。
+​           
 
 ### 外力条件
 

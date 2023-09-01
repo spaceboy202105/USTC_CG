@@ -17,7 +17,7 @@ const int window_size = 800;
 
 // Grid resolution (cells)
 const int n = 80;
-
+//timestep
 const real dt = 1e-4_f;
 const real frame_dt = 1e-3_f;
 const real dx = 1.0_f / n;

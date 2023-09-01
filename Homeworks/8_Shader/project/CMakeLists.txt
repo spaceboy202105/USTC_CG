@@ -42,6 +42,7 @@ else()
 	"fetch: ${_address} with tag v0.4.1")
 	FetchContent_Declare(
 	  UCMake
+
 	  GIT_REPOSITORY ${_address}
 	  GIT_TAG "v0.4.1"
 	)
@@ -61,7 +62,23 @@ if(TARGET glfw)
 endif()
 
 include_directories(${PROJECT_SOURCE_DIR}/include/_deps/)
-
+link_directories (
+	${PROJECT_SOURCE_DIR}/lib
+	# $ENV{XXX_LIB_PATH}
+	# ...
+)
+FetchContent_Declare(
+  UANN
+  GIT_REPOSITORY https://github.com/Ubpa/UANN
+  GIT_TAG        47688f0
+)
+FetchContent_MakeAvailable(UANN)
+link_directories (
+	${PROJECT_SOURCE_DIR}/lib
+	# $ENV{XXX_LIB_PATH}
+	# ...
+)
+link_libraries(UANN_annd.lib)
 Ubpa_AddDep(UGL 0.1.3)
 
 Ubpa_AddSubDirsRec(include)

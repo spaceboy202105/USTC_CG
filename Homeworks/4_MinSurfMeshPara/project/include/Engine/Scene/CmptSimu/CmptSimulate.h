@@ -4,7 +4,6 @@
 #include <Engine/Scene/CmptSimu/MassSpring.h>
 #include <vector>
 
-
 namespace Ubpa {
 	class CmptSimulate : public Component {
 	public:
@@ -14,7 +13,6 @@ namespace Ubpa {
 		CmptSimulate(
 			Ptr<SObj> sobj = nullptr, Ptr<Primitive> primitive = nullptr)
 			: Component(sobj), primitive(primitive) { }
-
 
 	public:
 		/*static const Ptr<CmptSimulate> New(Ptr<SObj> sobj, Ptr<Simulate> simu, float stiff = 1000.0f) {
@@ -27,20 +25,31 @@ namespace Ubpa {
 		virtual ~CmptSimulate() = default;
 
 	public:
-		void Init(std::vector<unsigned>& fix) { SetFix(fix); };
+		void Init(std::vector<unsigned>& fix) { SetFix(fix); }
 		// theta is in radian
 
 	public:
-		const std::vector<unsigned>& GetFix() const { return fix_id; };
-		float GetStiff() const { return CastTo<MassSpring>(primitive)->GetSimu()->GetStiff(); };
+		const std::vector<unsigned>& GetFix() const { return fix_id; }
+		float GetStiff() const { return CastTo<MassSpring>(primitive)->GetSimu()->GetStiff(); }
+		size_t GetIndex() const { return CastTo<MassSpring>(primitive)->GetSimu()->GetIndex(); }
+		size_t GetMaxIndex() const { return CastTo<MassSpring>(primitive)->GetSimu()->GetMaxIndex(); }
 		Ptr<Primitive> GetMesh() {
 			return primitive;
 		}// return CastTo<MassSpring>(primitive); }
 
 	public:
-		void SetStiff(float stiff) { CastTo<MassSpring>(primitive)->GetSimu()->SetStiff(stiff); };
-		void SetFix(std::vector<unsigned>& fix) { fix_id = fix; };
-		void SetLeftFix() {CastTo<MassSpring>(primitive)->GetSimu()->SetLeftFix();};
+		void SetStiff(float stiff) { CastTo<MassSpring>(primitive)->GetSimu()->SetStiff(stiff); }
+		void SetFix(std::vector<unsigned>& fix) { fix_id = fix; }
+		void SetLeftFix() { CastTo<MassSpring>(primitive)->GetSimu()->SetLeftFix(); }
+		void SetRightFix() { CastTo<MassSpring>(primitive)->GetSimu()->SetRightFix(); }
+		void SetUpFix() { CastTo<MassSpring>(primitive)->GetSimu()->SetUpFix(); }
+		void SetDownFix() { CastTo<MassSpring>(primitive)->GetSimu()->SetDownFix(); }
+		void AddFix() { CastTo<MassSpring>(primitive)->GetSimu()->AddFix(); }
+		void ClearFix() { CastTo<MassSpring>(primitive)->GetSimu()->ClearFix(); }
+		void SetIndex(size_t index) { CastTo<MassSpring>(primitive)->GetSimu()->SetIndex(index); }
+		const vecf3& GetFext() const { return CastTo<MassSpring>(primitive)->GetSimu()->GetFext(); }
+		void SetFext(const pointf3& f) { CastTo<MassSpring>(primitive)->GetSimu()->SetFext(f); }
+		void SetFextAll(const pointf3& f) { CastTo<MassSpring>(primitive)->GetSimu()->SetFext_all(f); }
 
 	private:
 		std::vector<unsigned> fix_id;

@@ -5,7 +5,17 @@
 #include <Engine/MeshEdit/Glue.h>
 #include <Engine/MeshEdit/MinSurf.h>
 #include <Engine/MeshEdit/Paramaterize.h>
+#include <Engine/MeshEdit/ParamaterizeBase.h>
+#include <Engine/MeshEdit/ParameterizeASAP.h>
+#include <Engine/MeshEdit/ParameterizeARAP.h>
+#include <Engine/MeshEdit/ParameterizeASAP.h>
+
 #include <Engine/MeshEdit/IsotropicRemeshing.h>
+
+#include <Engine/MeshEdit/BoundaryCircle.h>
+#include <Engine/MeshEdit/BoundaryBase.h>
+#include <Engine/MeshEdit/BoundarySquare.h>
+
 #include <Engine/MeshEdit/ShortestPath.h>
 #include <Engine/MeshEdit/MST.h>
 
@@ -55,12 +65,12 @@ using namespace std;
 
 class Attribute::ComponentVisitor : public HeapObj,
 	public SharedPtrMultiVisitor<Attribute::ComponentVisitor,
-		Component, Light, Primitive, Material>
+	Component, Light, Primitive, Material>
 {
 public:
 	Ptr<SObj> sobj;
 
-	ComponentVisitor(Attribute * attr) : attr(attr) {
+	ComponentVisitor(Attribute* attr) : attr(attr) {
 		Regist<CmptCamera,
 			CmptGeometry,
 			CmptLight,
@@ -95,7 +105,7 @@ public:
 	}
 
 public:
-	static const Ptr<ComponentVisitor> New(Attribute * attr) {
+	static const Ptr<ComponentVisitor> New(Attribute* attr) {
 		return Ubpa::New<ComponentVisitor>(attr);
 	}
 
@@ -137,14 +147,14 @@ protected:
 	void ImplVisit(Ptr<CmptSimulate> cmpt);
 
 private:
-	QWidget * GenItem(Ptr<Component> component, const QString & str) {
+	QWidget* GenItem(Ptr<Component> component, const QString& str) {
 		auto item = new QWidget;
 		attr->componentType2item[typeid(*component)] = item;
 		attr->tbox->insertItem(0, item, str);
 		return item;
 	}
 
-	Ptr<Grid> GetGrid(QWidget * item) {
+	Ptr<Grid> GetGrid(QWidget* item) {
 		auto target = attr->item2grid.find(item);
 		if (target != attr->item2grid.end())
 			return target->second;
@@ -156,7 +166,8 @@ private:
 	}
 
 private:
-	Attribute * attr;
+	Attribute* attr;
+	TriMesh* back_up_tri_mesh;
 };
 
 // -------------- Transform --------------
@@ -167,32 +178,64 @@ void Attribute::ComponentVisitor::ImplVisit(Ptr<CmptTransform> transform) {
 
 	// position
 	grid->AddText("- Position");
-	grid->AddEditVal({ "x","y","z" }, transform->GetPosition().cast_to<Ubpa::valf3>(), Ubpa::valf3(0.1f), [=](const Ubpa::valf3 & val) {
+	grid->AddEditVal({ "x","y","z" }, transform->GetPosition().cast_to<Ubpa::valf3>(), Ubpa::valf3(0.1f), [=](const Ubpa::valf3& val) {
 		transform->SetPosition(val.cast_to<Ubpa::pointf3>());
-	});
-	 
+		});
+
 	grid->AddText("- Rotation");
-	auto e = transform->GetRotationEuler().cast_to<Ubpa::vecf3>() / Ubpa::PI<float> * 180;
-	grid->AddEditVal({"x","y","z"}, e.cast_to<Ubpa::valf3>(), Ubpa::valf3(-90, -180, -180), Ubpa::valf3(90, 180, 180), Ubpa::vali3(180, 360, 360), [=](const Ubpa::valf3 & val) {
+	auto e = transform->GetRotationEuler().cast_to<Ubpa::vecf3>() / Ubpa::PI<float> *180;
+	grid->AddEditVal({ "x","y","z" }, e.cast_to<Ubpa::valf3>(), Ubpa::valf3(-90, -180, -180), Ubpa::valf3(90, 180, 180), Ubpa::vali3(180, 360, 360), [=](const Ubpa::valf3& val) {
 		transform->SetRotation(Ubpa::eulerf{ Ubpa::to_radian(val[0]),Ubpa::to_radian(val[1]) ,Ubpa::to_radian(val[2]) });
-	});
+		});
 
 	grid->AddText("- Scale");
-	grid->AddEditVal({ "x","y","z" }, transform->GetScale().cast_to<Ubpa::valf3>(), Ubpa::valf3(0.1f), [=](const Ubpa::valf3 & val) {
+	grid->AddEditVal({ "x","y","z" }, transform->GetScale().cast_to<Ubpa::valf3>(), Ubpa::valf3(0.1f), [=](const Ubpa::valf3& val) {
 		transform->SetScale(val.cast_to<Ubpa::scalef3>());
-	});
+		});
 }
 
 void Attribute::ComponentVisitor::ImplVisit(Ptr<CmptSimulate> simulate) {
 	auto item = GenItem(simulate, "Simulate");
 	auto grid = GetGrid(item);
 
+	// auto my_ptr_simulate = new Simulate();
 	grid->AddText("- Simulate");
 	grid->AddEditVal({ "stiff" }, simulate->GetStiff(), 0.1f, [=](const float& val) {
 		simulate->SetStiff(val);
 		});
-	grid->AddButton("set x min fix", [simulate]() {
+	grid->AddButton("fix x min point", [simulate]() {
 		simulate->SetLeftFix();
+		});
+	grid->AddButton("fix x max point", [simulate]() {
+		simulate->SetRightFix();
+		});
+	grid->AddButton("fix y max point", [simulate]() {
+		simulate->SetUpFix();
+		});
+	grid->AddButton("fix y min point", [simulate]() {
+		simulate->SetDownFix();
+		});
+	grid->AddButton("clear all fix", [simulate]() {
+		simulate->ClearFix();
+		});
+
+	grid->AddText("- external forces for all points");
+	grid->AddEditVal({ "x","y","z" }, simulate->GetFext().cast_to<Ubpa::valf3>(), Ubpa::valf3(0.1f), [=](const Ubpa::valf3& val) {
+		simulate->SetFextAll(val.cast_to<Ubpa::pointf3>());
+		});
+
+	grid->AddText("- index choose");
+	grid->AddEditVal({ "index" }, simulate->GetIndex(), 0, simulate->GetMaxIndex(), simulate->GetMaxIndex(), [=](const size_t& val) {
+		simulate->SetIndex(val);
+		});
+
+	grid->AddButton("set select point fix", [simulate]() {
+		simulate->AddFix();
+		});
+
+	grid->AddText("- external forces for one point");
+	grid->AddEditVal({ "x","y","z" }, simulate->GetFext().cast_to<Ubpa::valf3>(), Ubpa::valf3(0.1f), [=](const Ubpa::valf3& val) {
+		simulate->SetFext(val.cast_to<Ubpa::pointf3>());
 		});
 }
 
@@ -201,10 +244,10 @@ void Attribute::ComponentVisitor::ImplVisit(Ptr<CmptSimulate> simulate) {
 void Attribute::ComponentVisitor::ImplVisit(Ptr<CmptCamera> camera) {
 	auto item = GenItem(camera, "Camera");
 	auto grid = GetGrid(item);
-	
+
 	grid->AddEditVal("- Field of View", camera->GetFOV(), 1, 179, [camera](double fov) {
 		camera->SetFOV(fov);
-	});
+		});
 
 	grid->AddButton("- To Roamer Camera", [camera]() {
 		WPtr<Camera> wptrRoamerCam;
@@ -228,7 +271,7 @@ void Attribute::ComponentVisitor::ImplVisit(Ptr<CmptCamera> camera) {
 		roamerCam->SetPose(transform.decompose_position(), Ubpa::to_radian(eulerAngle[1]), Ubpa::to_radian(eulerAngle[0]));
 		roamerCam->SetFOV(fov);
 		EventMngr::GetInstance().Response(0, roamerCam);
-	});
+		});
 
 	grid->AddButton("- From Roamer Camera", [camera]() {
 		WPtr<Camera> wptrRoamerCam;
@@ -255,9 +298,8 @@ void Attribute::ComponentVisitor::ImplVisit(Ptr<CmptCamera> camera) {
 		auto pos = roamerCam->GetPos();
 		auto lookAt = Ubpa::transformf::look_at(pos, pos + front);
 		auto w2parent = camera->GetSObj()->GetLocalToWorldMatrix().inverse() * transformCmpt->GetTransform();
-		transformCmpt->SetTransform(lookAt.inverse() *  w2parent);
-
-	});
+		transformCmpt->SetTransform(lookAt.inverse() * w2parent);
+		});
 }
 
 // -------------- Geometry --------------
@@ -279,7 +321,7 @@ void Attribute::ComponentVisitor::ImplVisit(Ptr<CmptGeometry> geo) {
 	Grid::pSlotMap pSlotMap(new Grid::SlotMap);
 	Grid::wpSlotMap wpSlotMap = pSlotMap;
 
-	QComboBox * combobox = new QComboBox;
+	QComboBox* combobox = new QComboBox;
 
 	(*pSlotMap)["None"] = [=]() {
 		grid->Clear();
@@ -349,36 +391,13 @@ void Attribute::ComponentVisitor::ImplVisit(Ptr<Disk> disk) {
 
 void Attribute::ComponentVisitor::ImplVisit(Ptr<TriMesh> mesh) {
 	auto grid = GetGrid(attr->componentType2item[typeid(CmptGeometry)]);
+
 	grid->AddText("- Triangle", mesh->GetIndice().size() / 3);
 	grid->AddText("- Vertex", mesh->GetPositions().size());
 
 	grid->AddButton("Glue", [mesh, pOGLW = attr->pOGLW]() {
 		auto glue = Glue::New(mesh);
 		glue->Run();
-		pOGLW->DirtyVAO(mesh);
-	});
-
-	grid->AddButton("Minimize Surface", [mesh, pOGLW = attr->pOGLW]() {
-		auto minSurf = MinSurf::New(mesh);
-		minSurf->Run();
-		pOGLW->DirtyVAO(mesh);
-	});
-
-	grid->AddButton("Paramaterize", [mesh, pOGLW = attr->pOGLW]() {
-		auto paramaterize = Paramaterize::New(mesh);
-		if (paramaterize->Run())
-			printf("Paramaterize done\n");
-		pOGLW->DirtyVAO(mesh);
-	});
-
-	grid->AddButton("Isotropic Remeshing", [mesh, pOGLW = attr->pOGLW]() {
-		printf("[Isotropic Remeshing] start\n");
-		auto isotropicRemeshing = IsotropicRemeshing::New(mesh);
-		printf("[Isotropic Remeshing] init done\n");
-		if (isotropicRemeshing->Run(5))
-			printf("[Isotropic Remeshing] success\n");
-		else
-			printf("[Isotropic Remeshing] fail\n");
 		pOGLW->DirtyVAO(mesh);
 	});
 
@@ -391,6 +410,80 @@ void Attribute::ComponentVisitor::ImplVisit(Ptr<TriMesh> mesh) {
 		auto mst = MST::New(sobj);
 		mst->Run();
 		});
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	grid->AddButton("Minimize Surface", [mesh, pOGLW = attr->pOGLW]() {
+		auto minSurf = MinSurf::New(mesh);
+		minSurf->Run();
+		pOGLW->DirtyVAO(mesh);//display in screen
+	});
+
+	std::vector<std::string> parameterizing_barycentric_type_strs = { "Uniform", "Cotangent" };
+	Ptr<Paramaterize::BarycentricType> ptr_barycentric_type = std::make_shared<Paramaterize::BarycentricType>();//use ptr to get enum value
+	*ptr_barycentric_type = Paramaterize::BarycentricType::kUniform;
+	grid->AddComboBox("Barycentric Type", parameterizing_barycentric_type_strs, [ptr_barycentric_type](const std::string& str)
+		{
+			if (str == "Uniform")
+				*ptr_barycentric_type = Paramaterize::BarycentricType::kUniform;
+			else if (str == "Cotangent")
+				*ptr_barycentric_type = Paramaterize::BarycentricType::kCotangent;
+		});
+
+	std::vector<std::string> parameterizing_boundary_strs = { "Circle", "Square" };
+	Ptr<Paramaterize::BoundaryType> ptr_Boundary_Type = std::make_shared<Paramaterize::BoundaryType>();
+	*ptr_Boundary_Type = Paramaterize::BoundaryType::kCircle;
+	grid->AddComboBox("Boundary Type", parameterizing_boundary_strs, [ptr_Boundary_Type](const std::string& str)
+		{
+			if (str == "Circle")
+				*ptr_Boundary_Type = Paramaterize::BoundaryType::kCircle;
+			else if (str == "Square")
+				*ptr_Boundary_Type = Paramaterize::BoundaryType::kSquare;
+		});
+
+	grid->AddButton("Tutte Boundary Parameterize mesh", [mesh, pOGLW = attr->pOGLW, ptr_barycentric_type, ptr_Boundary_Type]() {
+		auto paramaterize = Paramaterize::New(mesh);
+		paramaterize->set_boundary(*ptr_Boundary_Type);
+		paramaterize->set_method(*ptr_barycentric_type);
+		if (paramaterize->Run())
+			printf("Parameterize done\n");
+		pOGLW->DirtyVAO(mesh);
+	});
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	std::vector<std::string> parameterizingMMethodStrs = { "ARAP", "ASAP" };
+	Ptr<ParamaterizeBase::ParaMethod> pMethod = std::make_shared<ParamaterizeBase::ParaMethod>();
+	*pMethod = ParamaterizeBase::ParaMethod::kARAP;
+	grid->AddComboBox("Method", parameterizingMMethodStrs, [pMethod](const std::string& str)
+		{
+			if (str == "ARAP")
+				*pMethod = ParamaterizeBase::ParaMethod::kARAP;
+			else if (str == "ASAP")
+				*pMethod = ParamaterizeBase::ParaMethod::kASAP;
+		});
+
+	Ptr<float> iteration = std::make_shared<float>();
+	*iteration = 0;
+	grid->AddEditVal({ "Iteration times" }, *iteration, 1.0f, [=](const float& val) {
+		*iteration = val;
+		});
+
+	grid->AddButton("Unfix Boundary Parameterize mesh", [mesh, pOGLW = attr->pOGLW, pMethod, ptr_barycentric_type, ptr_Boundary_Type, iteration]() {
+		ParamaterizeBase* paramaterize = nullptr;
+		if (*pMethod == ParamaterizeBase::ParaMethod::kASAP)
+			paramaterize = new ParameterizeASAP(mesh);
+		else if (*pMethod == ParamaterizeBase::ParaMethod::kARAP)
+			paramaterize = new ParameterizeARAP(mesh);
+		paramaterize->set_iteration(*iteration);
+		paramaterize->paramaterize = Paramaterize::New(mesh);
+		paramaterize->paramaterize->set_boundary(*ptr_Boundary_Type);
+		paramaterize->paramaterize->set_method(*ptr_barycentric_type);
+		if (paramaterize->Run())
+			printf("Parameterize done\n");
+		pOGLW->DirtyVAO(mesh);
+	});
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 }
 
 void Attribute::ComponentVisitor::ImplVisit(Ptr<Capsule> capsule) {
@@ -442,7 +535,7 @@ void Attribute::ComponentVisitor::ImplVisit(Ptr<CmptMaterial> cmpt) {
 
 			auto bsdf = get<1>(bsdfArr[i])();
 			cmpt->material = bsdf;
-			if(bsdf != nullptr)
+			if (bsdf != nullptr)
 				Visit(bsdf);
 		};
 	}
@@ -624,7 +717,7 @@ void Attribute::ComponentVisitor::ImplVisit(Ptr<AreaLight> light) {
 		auto tsfmCmpt = curSObj->GetComponent<CmptTransform>();
 		if (!tsfmCmpt)
 			tsfmCmpt = CmptTransform::New(curSObj);
-		tsfmCmpt->SetScale({light->width, 1.f, light->height});
+		tsfmCmpt->SetScale({ light->width, 1.f, light->height });
 
 		// material
 		auto matCmpt = curSObj->GetComponent<CmptMaterial>();
@@ -638,7 +731,7 @@ void Attribute::ComponentVisitor::ImplVisit(Ptr<AreaLight> light) {
 
 		attr->SetSObj(curSObj);
 		attr->SetCurCmpt<CmptLight>();
-	});
+		});
 }
 
 void Attribute::ComponentVisitor::ImplVisit(Ptr<PointLight> light) {
@@ -669,7 +762,7 @@ void Attribute::ComponentVisitor::ImplVisit(Ptr<InfiniteAreaLight> light) {
 	grid->AddEditColor("- Color Factor", light->colorFactor);
 	grid->AddEditImage("- Envirment Image", light->GetImg(), [light](Ptr<Image> img) {
 		light->SetImg(img);
-	});
+		});
 }
 
 void Attribute::ComponentVisitor::ImplVisit(Ptr<SphereLight> light) {
@@ -708,7 +801,7 @@ void Attribute::ComponentVisitor::ImplVisit(Ptr<SphereLight> light) {
 
 		attr->SetSObj(curSObj);
 		attr->SetCurCmpt<CmptLight>();
-	});
+		});
 }
 
 void Attribute::ComponentVisitor::ImplVisit(Ptr<DiskLight> light) {
@@ -733,7 +826,7 @@ void Attribute::ComponentVisitor::ImplVisit(Ptr<DiskLight> light) {
 		auto tsfmCmpt = curSObj->GetComponent<CmptTransform>();
 		if (!tsfmCmpt)
 			tsfmCmpt = CmptTransform::New(curSObj);
-		tsfmCmpt->SetScale({ light->radius, 1.0f, light->radius});
+		tsfmCmpt->SetScale({ light->radius, 1.0f, light->radius });
 
 		// material
 		auto matCmpt = curSObj->GetComponent<CmptMaterial>();
@@ -747,7 +840,7 @@ void Attribute::ComponentVisitor::ImplVisit(Ptr<DiskLight> light) {
 
 		attr->SetSObj(curSObj);
 		attr->SetCurCmpt<CmptLight>();
-	});
+		});
 }
 
 void Attribute::ComponentVisitor::ImplVisit(Ptr<CapsuleLight> light) {
@@ -789,16 +882,16 @@ void Attribute::ComponentVisitor::ImplVisit(Ptr<CapsuleLight> light) {
 
 		attr->SetSObj(curSObj);
 		attr->SetCurCmpt<CmptLight>();
-	});
+		});
 }
 
 // -------------- Attribute --------------
 
 Attribute::Attribute()
-	: tbox(nullptr), visitor(ComponentVisitor::New(this)){
+	: tbox(nullptr), visitor(ComponentVisitor::New(this)) {
 }
 
-void Attribute::Init(QToolBox * tbox, RawAPI_OGLW * pOGLW) {
+void Attribute::Init(QToolBox* tbox, RawAPI_OGLW* pOGLW) {
 	this->tbox = tbox;
 	this->pOGLW = pOGLW;
 	SetSObj(nullptr);
@@ -807,7 +900,7 @@ void Attribute::Init(QToolBox * tbox, RawAPI_OGLW * pOGLW) {
 void Attribute::SetSObj(Ptr<SObj> sobj) {
 	if (!tbox)
 		return;
-	
+
 	curSObj = sobj;
 
 	// clear
@@ -897,7 +990,7 @@ void Attribute::AddController(Ptr<SObj> sobj) {
 		componentDelMap[componentNames[i]] = componentDelFuncs[i];
 	}
 
-	auto addBtnSlot = [=](const string & item) {
+	auto addBtnSlot = [=](const string& item) {
 		auto target = componentGenMap.find(item);
 		if (target == componentGenMap.cend())
 			return;
@@ -910,7 +1003,7 @@ void Attribute::AddController(Ptr<SObj> sobj) {
 		visitor->Visit(component);
 	};
 
-	auto delBtnSlot = [=](const string & item) {
+	auto delBtnSlot = [=](const string& item) {
 		auto target = componentDelMap.find(item);
 		if (target == componentDelMap.cend())
 			return;

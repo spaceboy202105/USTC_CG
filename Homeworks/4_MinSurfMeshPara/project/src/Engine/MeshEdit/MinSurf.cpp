@@ -87,7 +87,77 @@ bool MinSurf::Run() {
 }
 
 void MinSurf::Minimize() {
-	// TODO
-	cout << "WARNING::MinSurf::Minimize:" << endl
-		<< "\t" << "not implemented" << endl;
+	builder();
+
+	Solve();
+	update();
+
+	cout << "INFO::MinSurf::Minimize:" << endl
+		<< "\t" << "Success" << endl;
+}
+
+void MinSurf::builder()
+{
+	v_size = heMesh->NumVertices();
+	L_mat.resize(v_size, v_size);
+	L_mat.setZero();
+
+	//	generate Laplace Matrix
+	vector<Eigen::Triplet<double>> L_coef;
+
+	for (size_t i = 0; i < v_size; i++)
+	{
+		V* v1 = heMesh->Vertices()[i];
+		L_coef.push_back(Eigen::Triplet<double>(i, i, 1));
+		if (!v1->IsBoundary())
+		{
+			int degree = v1->AdjVertices().size();
+			for (int j = 0; j < degree; j++)
+			{
+				L_coef.push_back(Eigen::Triplet<double>(i, heMesh->Index(v1->AdjVertices()[j]), -1.0 / (double)degree));
+			}
+		}
+	}
+
+	L_mat.setFromTriplets(L_coef.begin(), L_coef.end());
+}
+
+void MinSurf::Solve()
+{
+	x.resize(v_size), y.resize(v_size), z.resize(v_size);
+	bx.resize(v_size), by.resize(v_size), bz.resize(v_size);
+	bx.setZero(); by.setZero(); bz.setZero();
+
+	for (size_t i = 0; i < v_size; i++)
+	{
+		V* v = heMesh->Vertices()[i];
+		if (v->IsBoundary())
+		{
+			bx(i) = v->pos.at(0);
+			by(i) = v->pos.at(1);
+			bz(i) = v->pos.at(2);
+		}
+	}
+	solver.compute(L_mat);
+	if (solver.info() != Eigen::Success)
+	{
+		throw std::exception("Compute Matrix Is Error!");
+		return;
+	}
+
+	x = solver.solve(bx);
+	y = solver.solve(by);
+	z = solver.solve(bz);
+}
+
+void MinSurf::update()
+
+{
+	// int v_size = heMesh->NumVertices();
+	for (int i = 0; i < v_size; i++)
+	{
+		heMesh->Vertices()[i]->pos.at(0) = x(i);
+		heMesh->Vertices()[i]->pos.at(1) = y(i);
+		heMesh->Vertices()[i]->pos.at(2) = z(i);
+	}
 }

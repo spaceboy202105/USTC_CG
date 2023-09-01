@@ -17,6 +17,7 @@ namespace Ubpa {
 		Scene* GenScene(size_t n);
 
 		void PrintSerializedScene(Scene* scene);
+		std::string getSerializedSceneStr(Scene* scene);
 
 	private:
 		SceneGenerator();

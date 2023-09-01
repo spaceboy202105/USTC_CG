@@ -3,7 +3,7 @@
 #include <Engine/Primitive/TetMesh.h>
 #include <Engine/MeshEdit/Simulate.h>
 namespace Ubpa {
-	class MassSpring final: public Primitive {
+	class MassSpring final : public Primitive {
 	public:
 
 		enum Mesh_TYPE
@@ -55,17 +55,17 @@ namespace Ubpa {
 		const Ptr<TriMesh> GetTriMesh() const { if (mesh_type == Tri) return CastTo<TriMesh>(mesh); else return CastTo<TetMesh>(mesh)->GetTriMesh(); };
 		const MassSpring::Mesh_TYPE GetMeshType() const { return mesh_type; }
 
-		
+
 
 
 	public:
 		void GenEdge(const std::vector<unsigned>& facelist);  //generate edgelist from facelist
-		
-		void RunSimu() { simulation->Run(); Update(simulation->GetPositions()); };
-		void InitSimu() { simulation->Init(); Update(simulation->GetPositions()); };
-		Ptr<Simulate> GetSimu() {return simulation;};
+
+		void RunSimu() { simulation->Run(); Update(simulation->GetPositions()); }
+		void InitSimu() { simulation->Init(); Update(simulation->GetPositions()); }
+		Ptr<Simulate> GetSimu() { return simulation; }
 	private:
-		void NewSimu() { simulation = Simulate::New(pointlist, edgelist); };
+		void NewSimu() { simulation = Simulate::New(pointlist, edgelist); }
 		static bool SortEdge(std::vector<unsigned>f1, std::vector<unsigned>f2);
 	private:
 		std::vector<unsigned> tetrahedronlist;

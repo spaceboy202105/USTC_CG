@@ -11,7 +11,7 @@ uniform sampler2D shadowmap;
 uniform bool have_shadow;
 // TODO: HW8 - 2_Shadow | uniforms
 // add uniforms for mapping position in world space to position in shadowmap space
-
+uniform mat4 light_space_mat;
 uniform vec3 ambient_irradiance;
 uniform sampler2D albedo_texture;
 uniform float roughness;
@@ -24,7 +24,21 @@ in VS_OUT {
     vec2 TexCoord;
     vec3 Normal;
 } vs_out;
+float ShadowCalculation(vec4 fragPosLightSpace)
+{
+    // 执行透视除法
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    // 变换到[0,1]的范围
+    projCoords = projCoords * 0.5 + 0.5;
+    // 取得最近点的深度(使用[0,1]范围下的fragPosLight当坐标)
+    float closestDepth = texture(shadowmap, projCoords.xy).r; 
+    // 取得当前片段在光源视角下的深度
+    float currentDepth = projCoords.z;
+    // 检查当前片段是否在阴影中
+    float shadow = currentDepth > closestDepth  ? 1.0 : 0.0;
 
+    return shadow;
+}
 vec3 fresnel(vec3 albedo, float metalness, float cos_theta) {
 	float reflectance = 0.04;
 	vec3 F0 = mix(vec3(reflectance), albedo, metalness);
@@ -78,7 +92,14 @@ void main() {
 	
 	vec3 brdf = diffuse + specular;
 	// TODO: HW8 - 2_Shadow | shadow
-	float visible = 1.0; // if the fragment is in shadow, set it to 0
+	float shadow;
+	if(have_shadow){
+
+		shadow=ShadowCalculation(light_space_mat*vec4(vs_out.WorldPos,1.0));
+	}
+	else shadow=0.0;
+
+	float visible = 1.0-shadow; // if the fragment is in shadow, set it to 0
 	vec3 Lo_direct = visible * brdf * point_light_radiance * max(cos_theta, 0) / dist2;
 	vec3 Lo_ambient = (1-metalness) * albedo / PI * ambient_irradiance;
 	vec3 Lo = Lo_direct + Lo_ambient;

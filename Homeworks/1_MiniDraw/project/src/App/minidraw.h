@@ -18,6 +18,11 @@ public:
 	QAction* Action_About;
 	QAction* Action_Line;
 	QAction* Action_Rect;
+	QAction* Action_Ellipse;
+	QAction* Action_Freehand;
+	QAction* Action_Polygon;
+	QAction* Action_Color;
+	QAction* Action_Undo;
 
 	void Creat_Menu();
 	void Creat_ToolBar();

@@ -8,7 +8,7 @@
 using namespace std;
 
 int main() {
-	constexpr size_t POINT_NUM = 4;
+	constexpr size_t POINT_NUM = 4;//
 	constexpr size_t DIM = 2;
 	constexpr size_t K = 2;
 

@@ -10,9 +10,9 @@
 #include <_deps/imgui/imgui.h>
 #include <UBL/Image.h>
 #include <UEngine/SceneMngr.h>
-
+#include <chrono>
 #include <UScene/tool/Accel/BVH.h>
-
+#include <fmt/core.h>
 #include <thread>
 
 using namespace Ubpa;
@@ -48,9 +48,8 @@ void Cmpt::PathTracerAgency::OnUpdate(const Cmpt::Camera* cam, const Cmpt::L2W* 
 						color[2] = std::pow(color[2], 1.f / 2.2f);
 					}
 				}
-
-				img.Save("../data/rst.png", true);
-			});
+				img.Save("../data/rst_spp16_size800_rs09_on_default.png", true);
+				});
 			ptThread.detach();
 			sobj->Detach<PathTracerAgency>();
 		});

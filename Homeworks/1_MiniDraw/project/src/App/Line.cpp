@@ -2,6 +2,7 @@
 
 Line::Line()
 {
+	
 }
 
 Line::~Line()

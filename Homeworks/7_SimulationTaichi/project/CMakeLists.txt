@@ -1,6 +1,6 @@
 # 设置 CMake 的最低版本要求
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
-
+add_compile_options(-DTC_IMAGE_IO)
 # 设定项目
 project(SimulationTaichi VERSION 0.0.1)
 message(STATUS "[Project] ${PROJECT_NAME}")

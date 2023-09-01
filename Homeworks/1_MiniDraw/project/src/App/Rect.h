@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Shape.h"
+#include "CFigure.h"
 
-class Rect : public Shape {
+class Rect : public CFigure {
 public:
 	Rect();
 	~Rect();

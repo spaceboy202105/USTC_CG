@@ -68,7 +68,7 @@ private:
 	}
 
 protected:
-	template<template<typename,size_t>class FloatVec,size_t N>
+	template<template<typename, size_t>class FloatVec, size_t N>
 	void ImplVisit(FloatVec<float, N>& floatN, string_view classname, const string& name, ReflectionBase& refl) {
 		float f32_max = numeric_limits<float>::max();
 		float f32_min = -numeric_limits<float>::max();
@@ -87,20 +87,20 @@ protected:
 	template<typename Obj>
 	void ImplVisit(Obj* const& obj, string_view classname, const string& name, ReflectionBase& refl) {
 		ImGui::Text(name.data());
-		if(obj != nullptr)
+		if (obj != nullptr)
 			Viewer_Obj::Instance().Visit(obj);
 		else
 			ImGui::Text("null");
 	};
 
 	void ImplVisit(rgbf& c, string_view classname, const string& name, ReflectionBase& refl) {
-		ImGui::ColorEdit3((string(classname)+"::"+name).c_str(), c.data());
+		ImGui::ColorEdit3((string(classname) + "::" + name).c_str(), c.data());
 	}
 
 	void ImplVisit(float& f, string_view classname, const string& name, ReflectionBase& refl) {
 		float f32_max = numeric_limits<float>::max();
 		float f32_min = -numeric_limits<float>::max();
-		
+
 		// range
 		auto range = refl.FieldMeta(name, ReflAttr::range);
 		auto seperator = range.find(',');
@@ -209,4 +209,3 @@ void Cmpt::Inspector::OnUpdate(const Hierarchy* hierarchy) {
 		ImGui::End();
 	});
 }
-
